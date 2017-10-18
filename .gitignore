@@ -1,5 +1,5 @@
 #gff files at least for now
-.gff
+*.gff
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
