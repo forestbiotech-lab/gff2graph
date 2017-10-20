@@ -1,46 +1,33 @@
 #!/usr/bin/env python3
 
+#System modules
 import sys
-from Gene import Gene
-from FeatureLine import FeatureLine
+import time
 
 
+#Package modules
+from genome import Genome
+from lookupRegion import LookupRegion
+from precursors import Precursors
+
+#Timing script
+start_time = time.time()
+
+#Declaring inputs
 gff=sys.argv[1]
-precursors=open(sys.argv[2],"r")
+precursors=sys.argv[2]
 
+class Main:
 
-
-class Genome:
-	
 	def __init__(self,gffFile):
-		#See gff http://www.ensembl.org/info/website/upload/gff.html
+		print("Started parsing genome annotation")
+		self.genome=Genome(gffFile)
+		self.node=self.genome.node
 
-		gff=open(gffFile,"r")
-		features=[FeatureLine(gffLine.strip().split("\t")) for gffLine in gff.readlines() if not gffLine.startswith("#") ]
-		self.genome=dict()
-		self.node=0
-		for featureLine in features:
-			seqname=featureLine.seqname()
-			if featureLine.feature() == "gene":
-				self.node+=1
-				gene=Gene(featureLine,self.node)
-				try:
-					#Attempt to get gene list
-					geneList=self.genome[seqname]
-					geneList.append(gene)
-					self.genome[seqname]=geneList
-				except KeyError: 
-					#Start genelist
-					self.genome[seqname]=[gene]
+		print("Finished parsing genome annotation")
 
-	def getGenome(self):	
-		print(self.genome)
 	
-	def stats(self):
-		#Generates the statistics for the genome. Tuple with seqname and respective number of genes.
-		return [(seqname,len(self.genome[seqname])) for seqname in self.genome ]
-
-	def genGraph(self):
+	def generate_gene_graph(self,close=True):
 		#Generate the genome graph
 		nodesFile="nodes.tsv"	
 		edgeFile="edges.tsv"
@@ -48,91 +35,61 @@ class Genome:
 		writeEdge=open(edgeFile,"w")
 		
 		#Write headers#
-		writeNode.write("id\tLabel\n")
+		writeNode.write("id\tLabel\tType\tType Code\n")
 		writeEdge.write("Source\tTarget\n")
 
 
-		for seqname in self.genome:
-			for geneIndex in range(0,len(self.genome[seqname])-1):
-				geneList=self.genome[seqname]
-				node=str(geneList[geneIndex].gene['id'])+"\t"+geneList[geneIndex].gene['name']+"\n"
+		for seqname in self.genome.genome:
+			for geneIndex in range(0,len(self.genome.genome[seqname])-1):
+				geneList=self.genome.genome[seqname]
+				
+				node=str(geneList[geneIndex].gene['id'])+"\t"+geneList[geneIndex].gene['name']+"\tGene\t1\n"
 				writeNode.write(node)
+				
 				edge=str(geneList[geneIndex].gene['id'])+"\t"+str(geneList[geneIndex+1].gene['id'])+"\n"
 				writeEdge.write(edge)
+
 			writeNode.flush()
 			writeEdge.flush()
 
 		writeNode.flush()
 		writeEdge.flush()
-		writeNode.close()
-		writeEdge.close()
-		
-	def getSurroundingGenes(self,region):
-		#region if a tuple with start and end for a seqname (seqname,start,end)
-		seqname=self.genome[region[0]]
-		print(region[1])
-		downstream=[ gene for gene in seqname if region[1]>gene.start() and region[2]>gene.start() ]
-		print([gene.start() for gene in downstream])
-
-	def isInsideGene(self,region):
-		#region if a tuple with start and end for a seqname (seqname,start,end)
-		seqname=self.genome[region[0]]
-		downstream=[ gene for gene in seqname if region[1]>gene.start() and region[2]<gene.end() ]
-		return len(downstream)==1
-
-	def isAcrossGeneBoundries(self,region):
-		#Check if region is across gene 1 boundary
-		return self.isAcrossLeftGeneBoundry(region,multiple=False) or self.isAcrossRightGeneBoundry(region,multiple=False)
-		
-	def isAcrossLeftGeneBoundry(self,region,multiple):
-		seqname=self.genome[region[0]]
-		acrossBoundry=[ gene for gene in seqname if region[1]<gene.start() and region[2]>gene.start() and region[2]<gene.end() ]
-		if multiple:
-			return len(acrossBoundry)>1
-		else:	
-			return len(acrossBoundry)==1
-
-	def isAcrossRightGeneBoundry(self,region,multiple):
-		seqname=self.genome[region[0]]
-		acrossBoundry=[ gene for gene in seqname if region[1]>gene.start() and region[1]<gene.end() and region[2]>gene.end() ]
-		if multiple:
-			return len(acrossBoundry)>1
-		else:	
-			return len(acrossBoundry)==1
-
-	def containsServeralGenes(self,region):
-		#Test if region crossed multiple gene boundaries  
-		#Not implemented or maybe it is. | Didn't test the logic
-		return self.isAcrossLeftGeneBoundry(self,region,multiple=True) or self.isAcrossRightGeneBoundry(self,region,multiple=True) 
-
-	def getDownstreamGene(self,region):
-		seqname=self.genome[region[0]]
-		print("  --------")
-		print("  |      |")
-		print(str(region[1])+" "+str(region[2]))
-		downstream=[ gene for gene in seqname if region[1]>gene.start() and region[2]>gene.end() ]
-		##print((downstream[-1].start(),downstream[-1].end()))
-		if len(downstream)>0:
-			return downstream[-1]
-		else: 
-			return []
-	
-	def getUpstreamGene(self,region):	
-		seqname=self.genome[region[0]]
-		print("  --------")
-		print("  |      |")
-		print(str(region[1])+" "+str(region[2]))
-		upstream=[ gene for gene in seqname if region[1]<gene.start() and region[2]<gene.end() ]
-		#print((upstream[0].start(),upstream[0].end()))
-		if len(upstream)>0:
-			return upstream[0]
+		if close:	
+			writeNode.close()
+			writeEdge.close()
 		else:
-			return []
+			return [writeNode,writeEdge]
 
+	def generate_gene_n_precursor_graph(self,precursorsFile,close=True):
+		#Runs generate_gene_graph and adds the current number to star listing precursors as nodes.
+		#Searches for surrounding gene and adds edges to them if in gene adds three edges
 
-class Exon:
-	def __init__(self,featureLine):
-		name=""
+		self.precursors=Precursors(precursorsFile).precursors
+		writeNode,writeEdge=self.generate_gene_graph(close=False)
+		for precursor in self.precursors:
+			if precursor.name.startswith("mir"):
+				type_="pre_Conserved"
+				type_code=2
+			else:
+				type_="pre_Novel"
+				type_code=3	
+			node="%s\t%s\t%s\t%s\n" %(precursor.id+self.genome.node,precursor.name,type_,type_code)
+			writeNode.write(node)
+			surrounding_genes=LookupRegion(self.genome,precursor.region).get_surrounding_genes()
+			print(surrounding_genes)
+			for gene in surrounding_genes:
+				print(gene)
+				if gene is not None:
+					edge="%s\t%s\n" %(precursor.id+self.genome.node,gene.gene['id']) 
+					writeEdge.write(edge)	
+
+			writeNode.flush()
+			writeEdge.flush()
+		if close:	
+			writeNode.close()
+			writeEdge.close()
+		else:
+			return [writeNode,writeEdge]	
 
 #(gene        	 282167 	 289354)
 #print(Genome(gff).isInsideGene(('scaffold_449',289356,289359)))
@@ -140,9 +97,16 @@ class Exon:
 #print(Genome(gff).getUpstreamGene(('scaffold_449',289356,289359)))
 #print(Genome(gff).isAcrossRightGeneBoundry(('scaffold_449',289356,289359),False))
 #print(Genome(gff).isAcrossGeneBoundries(('scaffold_449',289356,289359)))
+#print(Genome(gff).stats())
 
-print(Genome(gff).genGraph())
-print(Genome(gff).stats())
+Main(gff).generate_gene_n_precursor_graph(precursors)
+
+#print([ LookupRegion(genome,precursor.region).is_inside_gene() for precursor in Precursors(precursors).precursors])
+#lookupRegion=LookupRegion(genome,preRegion)
+#print(lookupRegion.is_inside_gene())
+#print(lookupRegion.is_across_gene_boundries())
+#print(lookupRegion.get_surrounding_genes())
 
 
 
+print("--- %s seconds ---" % (time.time() - start_time))

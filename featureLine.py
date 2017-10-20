@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 class FeatureLine:
 	def __init__(self,gffLine):
 	#Converts a gff featureLine into a named dictionary object
