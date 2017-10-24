@@ -24,6 +24,7 @@ class Genome:
 					geneList=self.genome[seqname]
 					geneList.append(gene)
 					self.genome[seqname]=geneList
+					#self.genome[seqname].append(gene) #Will this work out of the box or was there and issue of some sort?
 				except KeyError: 
 					#Start genelist
 					self.genome[seqname]=[gene]

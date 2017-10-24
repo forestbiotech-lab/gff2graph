@@ -5,8 +5,8 @@ class Gene:
 	#Starts a gene object
 		fl=FeatureLine.get()
 		self.gene=dict([["name",fl["attribute"]],
-			["start",fl["start"]],
-			["end",fl["end"]],
+			["start",int(fl["start"])],
+			["end",int(fl["end"])],
 			["exons",[]],
 			["introns",[]],
 			["cds",[]],
