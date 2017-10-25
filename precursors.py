@@ -14,6 +14,7 @@ class Precursors:
 	#O(2P)
 		precursors=open(precursorsFile,"r").readlines()
 		self.precursors=[ Precursor(precursors[index].strip().split("\t"),index) for index in range(1,len(precursors)-1) ]
+		#organize them by miRNAs
 		self.miRNA=MiRNA(self.precursors).get()
 	def pop(self):
 		return self.precursors.pop()

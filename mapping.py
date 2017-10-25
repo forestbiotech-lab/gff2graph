@@ -26,7 +26,7 @@ class Sam:
 			else:
 				mapping=Mapping(samLine)
 				self.sam[mapping.RNAME].append(mapping)
-				self.est[QNAME]=mapping      	#Each accession should only have one mapping or else they will be overwritten
+				self.est[mapping.QNAME]=mapping      	#Each accession should only have one mapping or else they will be overwritten
 
 class Mapping:
 	def __init__(self,mappingLine):
