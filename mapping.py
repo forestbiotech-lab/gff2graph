@@ -14,6 +14,7 @@
 class Sam:
 	def __init__(self,samFile):
 		self.sam=dict()
+		self.est=dict()
 		self.sam['*']=[] #Save unmapped for some reason yet to be determined for now
 		for samLine in open(samFile,"r").readlines():
 			samLine=samLine.strip().split('\t')
@@ -25,6 +26,7 @@ class Sam:
 			else:
 				mapping=Mapping(samLine)
 				self.sam[mapping.RNAME].append(mapping)
+				self.est[QNAME]=mapping      	#Each accession should only have one mapping or else they will be overwritten
 
 class Mapping:
 	def __init__(self,mappingLine):

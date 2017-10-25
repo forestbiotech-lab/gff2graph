@@ -39,6 +39,7 @@ class Main:
         writeNode.write("id\tLabel\tType\tType Code\n")
         writeEdge.write("Source\tTarget\n")
 
+        # !!!!!!!!!!!!Start building edges in genes here    
         for seqname in self.genome.genome:
             for geneIndex in range(0, len(self.genome.genome[seqname]) - 1):
                 geneList = self.genome.genome[seqname]
@@ -69,7 +70,9 @@ class Main:
 
         self.precursors = Precursors(precursorsFile).precursors
         writeNode, writeEdge = self.generate_gene_graph(close=False)
-        count3=0
+        self.edges_3=0  #Have 3 edges (Might be pointing to none though)
+        self.edges_2=0  #Have 2 edges
+        self.egdes_1=0  #Have 1 edges (This means scaffold/contig doesn't have annotation, for now.)
         for precursor in self.precursors:
             if precursor.name.startswith("mir"):
                 type_ = "pre_Conserved"
@@ -83,7 +86,11 @@ class Main:
             surrounding_genes = LookupRegion(
                 self.genome, precursor.region).get_surrounding_genes()
             if len(surrounding_genes)==3:
-                count3+=1
+                self.edges_3+=1
+            if len(surrounding_genes)==2:
+                self.edges_2+=1
+            if len(surrounding_genes)==1:
+                self.egdes_1+=1
             #print(surrounding_genes)
             for gene in surrounding_genes:
                 print(gene)
@@ -99,22 +106,30 @@ class Main:
             writeEdge.close()
         else:
             return [writeNode, writeEdge]
-        print(count3)
+    
 
     def test_mapping(self, samFile):
         print("Loading .sam file")
         sam = Sam(samFile)
         print(".sam File loaded")
-        res=dict([[True,0],[False,0]])
+        self.isInGene=dict([[True,0],[False,0],["across",0]])
         for seqname in sam.sam:
             for mapping in sam.sam[seqname]:
                 lookup = LookupRegion(self.genome, mapping.region)
-                res[lookup.is_inside_gene() or lookup.is_across_gene_boundries()]+=1
+                self.isInGene[lookup.is_inside_gene() or lookup.is_across_gene_boundries()]+=1
                 if lookup.is_across_gene_boundries():
-                    print("is across gene boundries")
+                    self.isInGene['across']+=1
                     print(lookup.percentagem_of_region_outside_gene())
-                    print("value")
-        print(mapping.RNAME + " - "+str(res))	
+        print(mapping.RNAME + " - "+str(self.isInGene))	
+        
+
+    def stats(self):
+    #Prints stats already calculated for graphs
+        pinnt("Number of precursor mappings")
+        print(" 3:"+str(self.edges_3))
+        print(" 2:"+str(self.edges_2))
+        print(" 1:"+str(self.egdes_1))    
+        print(self.isInGene)
 
 
 #(gene        	 282167 	 289354)
