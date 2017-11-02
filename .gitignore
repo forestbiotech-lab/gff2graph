@@ -1,6 +1,13 @@
 #gff files at least for now
 *.gff
 *.tsv
+EST_mapping_2_Qsuber_Genome.sam
+Project_p1-Complex_Networks-Bruno_Costa.tar.gz
+Qsuber_v2.0.gff.gz
+
+
+
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

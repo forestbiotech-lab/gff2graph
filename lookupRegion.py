@@ -8,7 +8,11 @@
 #
 
 class LookupRegion:
+	#Lookup function to identify regions in genome
+
 	def __init__(self,genome,region):
+		#Loads genome and region. Checks if seqname in region exists on genome 
+
 		self.genome=genome.genome
 		self.region=region
 		self.debug=False
@@ -19,7 +23,8 @@ class LookupRegion:
 				print("  |      |")
 				print(str(self.region[1])+" "+str(self.region[2]))
 		except KeyError:	
-			print(region[0]+" not in genome annotation")
+			if self.debug:
+				print(region[0]+" not in genome annotation")
 			self.seqname=None
 
 	def get_surrounding_genes(self):
@@ -50,18 +55,31 @@ class LookupRegion:
 			return False
 
 	def get_outermost_gene(self):
-		#self.region if a tuple with start and end for a seqname (seqname,start,end)
+		#This applies if strictly inside gene and if across one gene boundary
+
 		if self.seqname is not None:
-			downstream=[ gene for gene in self.seqname if self.region[1]>gene.start and self.region[2]<gene.end ]  #Change this variable
-			if len(downstream)==1:
-				return downstream[0]
-			else:
-				return None
+			if self.is_inside_gene():
+
+				outermost_gene=[ gene for gene in self.seqname if self.region[1]>gene.start and self.region[2]<gene.end ]  #Change this variable
+				if len(outermost_gene)==1:
+					return outermost_gene[0]
+				else:
+					return None
+
+			elif self.is_across_gene_boundries():
+				if self.is_across_left_gene_boundry(multiple=False):
+					#get upstream gene get u the current gene
+					return self.get_upstream_gene()
+				if self.is_across_right_gene_boundry(multiple=False):
+					#get downstream gene get u the current gene
+					return self.get_downstream_gene()
+
 		else:
 			return False
 
 	def is_across_left_gene_boundry(self,multiple):
-	#Check if region crosses a left gene boundary	
+		#Check if region crosses a left gene boundary	
+
 		if self.seqname is None:
 			return False
 		else:
@@ -72,7 +90,8 @@ class LookupRegion:
 				return len(acrossBoundry)==1
 
 	def is_across_right_gene_boundry(self,multiple):
-	#Check if region crosses a right gene boundary	
+		#Check if region crosses a right gene boundary	
+
 		if self.seqname is None:
 			return False
 		else:

@@ -14,7 +14,7 @@ class Targets:
     def __init__(self, targetsFile):
         targets = open(targetsFile, "r").readlines()
         self.targets = [Target(targets[index].strip().split("\t"), index)
-                        for index in range(2, len(targets) - 1)]
+                        for index in range(2, len(targets))]
         
     def add_mapping(self,sam):
     		# sam is a sam object that contains mappings     
@@ -23,17 +23,20 @@ class Targets:
         # If the targets are directly mapped to the genome this is not necessary
         # Some other function should be implemented so that they are arranged by seq name if Target_acc is genome seqname
         
-        self.mapped=dict()
+        self.mappedWithAnnotation=dict()
         for target in self.targets:
         	try:
         		#Retrieve the mapping for the target
         		mapping=sam.est[target.target_Acc]
-        		#is it mapped to genome
         		if mapping.RNAME is not "*":
-        			try:
-	        			self.mapped[mapping.RNAME].append((target,mapping))
-	        		except KeyError:
-	        			self.mapped[mapping.RNAME]=[(target,mapping)]
+        		#is it mapped to genome
+        			if mapping.gene is not None: 
+        			#if mapping is in gene
+        				target.mapping=mapping
+	        			try:
+		        			self.mappedWithAnnotation[mapping.RNAME].append(target)
+		        		except KeyError:
+		        			self.mappedWithAnnotation[mapping.RNAME]=[target]
         	except KeyError:
         		print(target.target_Acc+"doesn't exist")
         # self.miRNA=MiRNA(self.precursors).get()
@@ -57,3 +60,5 @@ class Target:
         self.target_Desc = targetLine[11]									#
         self.multiplicity = targetLine[12]								# This would be the abundance it seq aren't collapsed
         self.id=id_
+        self.mapping=None 																# This is the mapping
+        self.miRseq=self.miRNA_Acc											# This is the miRNA sequence. Unifies naming throughout classes 

@@ -10,6 +10,7 @@ from genome import Genome
 from lookupRegion import LookupRegion
 from precursors import Precursors
 from mapping import Sam
+from target import Targets
 
 # Timing script
 start_time = time.time()
@@ -18,11 +19,14 @@ start_time = time.time()
 gff = sys.argv[1]
 precursors = sys.argv[2]
 samFile = sys.argv[3]
+targetFile = sys.argv[4]
 
 
 class Main:
 
     def __init__(self, gffFile):
+        #Constructor function starts by building genome
+
         print("Started parsing genome annotation")
         self.genome = Genome(gffFile)
         self.node = self.genome.node
@@ -37,20 +41,24 @@ class Main:
 
         #Write headers#
         writeNode.write("id\tLabel\tType\tType Code\n")
-        writeEdge.write("Source\tTarget\n")
+        writeEdge.write("Source\tTarget\tType\tType Code\n")
 
         # !!!!!!!!!!!!Start building edges in genes here    
         for seqname in self.genome.genome:
-            for geneIndex in range(0, len(self.genome.genome[seqname]) - 1):
-                geneList = self.genome.genome[seqname]
+            geneList = self.genome.genome[seqname]
+            for geneIndex in range(0, len(self.genome.genome[seqname])-1):
 
                 node = str(geneList[geneIndex].gene['id']) + "\t" + \
                     geneList[geneIndex].gene['name'] + "\tGene\t1\n"
                 writeNode.write(node)
 
                 edge = str(geneList[geneIndex].gene['id']) + "\t" + \
-                    str(geneList[geneIndex + 1].gene['id']) + "\n"
+                    str(geneList[geneIndex + 1].gene['id']) + "\tGene Neighbour\t0\n"
                 writeEdge.write(edge)
+            #adding the last gene node
+            node = str(geneList[len(self.genome.genome[seqname])-1].gene['id']) + "\t" + \
+                geneList[len(self.genome.genome[seqname])-1].gene['name'] + "\tGene\t1\n"
+            writeNode.write(node)
 
             writeNode.flush()
             writeEdge.flush()
@@ -65,24 +73,28 @@ class Main:
 
     def generate_gene_n_precursor_graph(self, precursorsFile, close=True):
         # Runs generate_gene_graph and adds the current number to star listing precursors as nodes.
+        # Updated precursor.id to account for nodes in genome
         # Searches for surrounding gene and adds edges to them if in gene adds
         # three edges
 
-        self.precursors = Precursors(precursorsFile).precursors
+        self.precursors = Precursors(precursorsFile)
         writeNode, writeEdge = self.generate_gene_graph(close=False)
         self.edges_3=0  #Have 3 edges (Might be pointing to none though)
         self.edges_2=0  #Have 2 edges
         self.egdes_1=0  #Have 1 edges (This means scaffold/contig doesn't have annotation, for now.)
-        for precursor in self.precursors:
+        nodeCount=0
+        for precursor in self.precursors.precursors:
             if precursor.name.startswith("mir"):
                 type_ = "pre_Conserved"
                 type_code = 2
             else:
                 type_ = "pre_Novel"
                 type_code = 3
+            precursor.id+=self.genome.node
             node = "%s\t%s\t%s\t%s\n" % (
-                precursor.id + self.genome.node, precursor.name, type_, type_code)
+                precursor.id, precursor.name, type_, type_code)
             writeNode.write(node)
+            nodeCount+=1
             surrounding_genes = LookupRegion(
                 self.genome, precursor.region).get_surrounding_genes()
             if len(surrounding_genes)==3:
@@ -92,15 +104,24 @@ class Main:
             if len(surrounding_genes)==1:
                 self.egdes_1+=1
             #print(surrounding_genes)
+            geneCounter=0
             for gene in surrounding_genes:
-                print(gene)
+                #print(gene)
+                if len(surrounding_genes)==3 and geneCounter==1:
+                    Type="Inside"
+                    TypeCode=2
+                else:
+                    Type="Pre-Gene Neighbour"
+                    TypeCode=1
                 if gene is not None:
-                    edge = "%s\t%s\n" % (
-                        precursor.id + self.genome.node, gene.gene['id'])
+                    edge = "%s\t%s\t%s\t%s\n" % (
+                        precursor.id, gene.gene['id'],Type,TypeCode)
                     writeEdge.write(edge)
-
+                geneCounter+=1
             writeNode.flush()
             writeEdge.flush()
+        #Sum the number of unique nodes added in this process    
+        self.node+=nodeCount
         if close:
             writeNode.close()
             writeEdge.close()
@@ -108,49 +129,93 @@ class Main:
             return [writeNode, writeEdge]
     
 
-    def test_mapping(self, samFile):
+    def generate_g_p_n_target_graph(self,precursorsFile,samFile,targetFile):
+        #Runs other graph generators and add targets
+        #This is implemented for transcripts
+        #This function only adds edges not nodes
+
+
+
+
         print("Loading .sam file")
         sam = Sam(samFile)
         print(".sam File loaded")
+        print("Loading targets")
+        targets = Targets(targetFile)  
+        print("Targets loaded")
+
+ 
+
+        self.add_gene_annotations_to_mappings(sam)             
+        
+        #Done here so est are added do node name
+        writeNode, writeEdge = self.generate_gene_n_precursor_graph(precursorsFile,close=False)
+        
+        #Should happen after genes are added to mappings
+        targets.add_mapping(sam)
+        #Adds mappings to targets if they have a gene annotation
+
+        targetWithOutPrecursor=0
+        for seqname in targets.mappedWithAnnotation:
+            #Go through seqnames
+            for target in targets.mappedWithAnnotation[seqname]:
+                #Add targeting edges to genes.
+                gene=target.mapping.gene
+                try:
+                    #Try to add target to miRNA but for that they must have a precursor
+                    miRNA=self.precursors.miRNA[target.miRseq.split("-")[0]]
+                    gene.targeted=miRNA
+                    edge = "%s\t%s\tTarget\t3\n" % (miRNA.id, gene.gene['id'])
+                    writeEdge.write(edge)
+                except:
+                    targetWithOutPrecursor+=1
+
+            writeEdge.flush()
+        writeEdge.close()
+        print("Number of targets without precursor: "+str(targetWithOutPrecursor))
+
+    def add_gene_annotations_to_mappings(self,sam):
+        #Checks if mapping belongs to any gene annotation and adds it.
+
         self.isInGene=dict([[True,0],[False,0],["across",0]])
         for seqname in sam.sam:
             for mapping in sam.sam[seqname]:
+                #Initiates the lookup class
                 lookup = LookupRegion(self.genome, mapping.region)
-                self.isInGene[lookup.is_inside_gene() or lookup.is_across_gene_boundries()]+=1
+
+                #If mapping is inside gene or across gene boundary add the gene to the mapping  
+                isInGene=lookup.is_inside_gene() or lookup.is_across_gene_boundries()
+                self.isInGene[isInGene]+=1
+                if isInGene:
+                    gene=lookup.get_outermost_gene()
+                    lookup.get_outermost_gene().gene['name']=gene.name+" "+mapping.QNAME
+                    mapping.gene=gene
+
+                #Statistics    
                 if lookup.is_across_gene_boundries():
                     self.isInGene['across']+=1
-                    print(lookup.percentagem_of_region_outside_gene())
-        print(mapping.RNAME + " - "+str(self.isInGene))	
-        
+                    #Make a plot with frequency per quartile
+                    #print(lookup.percentagem_of_region_outside_gene())        
 
     def stats(self):
     #Prints stats already calculated for graphs
-        pinnt("Number of precursor mappings")
+
+        print("Number of precursor mappings")
         print(" 3:"+str(self.edges_3))
         print(" 2:"+str(self.edges_2))
         print(" 1:"+str(self.egdes_1))    
         print(self.isInGene)
 
 
-#(gene        	 282167 	 289354)
-# print(Genome(gff).isInsideGene(('scaffold_449',289356,289359)))
-# print(Genome(gff).getDownstreamGene(('scaffold_449',289356,289359)))
-# print(Genome(gff).getUpstreamGene(('scaffold_449',289356,289359)))
-# print(Genome(gff).isAcrossRightGeneBoundry(('scaffold_449',289356,289359),False))
-# print(Genome(gff).isAcrossGeneBoundries(('scaffold_449',289356,289359)))
+
 # print(Genome(gff).stats())
 
 
-#print([ LookupRegion(genome,precursor.region).is_inside_gene() for precursor in Precursors(precursors).precursors])
-# lookupRegion=LookupRegion(genome,preRegion)
-# print(lookupRegion.is_inside_gene())
-# print(lookupRegion.is_across_gene_boundries())
-# print(lookupRegion.get_surrounding_genes())
 
+#Main(gff).generate_gene_graph()
+#Main(gff).generate_gene_n_precursor_graph(precursors)
+Main(gff).generate_g_p_n_target_graph(precursors,samFile,targetFile) #Generate a gene
 
-Main(gff).generate_gene_n_precursor_graph(precursors) #Generate a gene
-# and precursor graph
-#Main(gff).test_mapping(samFile)
 
 
 print("--- %s seconds ---" % (time.time() - start_time))

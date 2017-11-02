@@ -13,7 +13,7 @@ class Precursors:
 	#Constructor for precursors, parses the precursors file
 	#O(2P)
 		precursors=open(precursorsFile,"r").readlines()
-		self.precursors=[ Precursor(precursors[index].strip().split("\t"),index) for index in range(1,len(precursors)-1) ]
+		self.precursors=[ Precursor(precursors[index].strip().split("\t"),index) for index in range(1,len(precursors)) ]
 		#organize them by miRNAs
 		self.miRNA=MiRNA(self.precursors).get()
 	def pop(self):
@@ -42,3 +42,4 @@ class Precursor:
 		self.id=id_ 											#NODE - Id
 		self.geneNeighbours=[]								 	#EDGES - Neighbours Gene object
 		self.gene=None 											#EDGES - Contained in Gene object
+		self.target=None 										#EDGES - Targeted gene for regulation

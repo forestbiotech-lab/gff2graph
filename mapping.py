@@ -42,4 +42,5 @@ class Mapping:
 		self.SEQ=mappingLine[9] 		# String \*|[A-Za-z=.]+ segment SEQuence
 		self.QUAL=mappingLine[10] 		# String [!-~]+ ASCII of Phred-scaled base QUALity+33		
 		self.region=(self.RNAME,self.POS,self.POS+len(self.SEQ))
+		self.gene=None 					# Gene object used to filter targets based on existence of gene annotation on genome
 

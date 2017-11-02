@@ -4,6 +4,7 @@ class Gene:
 	def __init__(self,FeatureLine,id_):
 	#Starts a gene object
 		fl=FeatureLine.get()
+		#This dictionary of futile change this to variables instead. Or is it better to store this way.
 		self.gene=dict([["name",fl["attribute"]], 		#GFF
 			["start",int(fl["start"])],   				#GFF						
 			["end",int(fl["end"])],		  				#GFF				
@@ -26,15 +27,10 @@ class Gene:
 		self.name=self.gene["name"]	
 		self.start=self.gene["start"]
 		self.end=self.gene["end"]
+		self.targeted=self.gene["targeted"]
 
 	def get(self):
 		return self.gene
-	def name(self):
-		return self.gene["name"]
-	def start(self):
-		return self.gene["start"]
-	def end(self):
-		return self.gene["end"]
 	def addExon(self,featureLine):
 		name=""
 
