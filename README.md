@@ -8,7 +8,87 @@ The main file is genGraph.py
 
 Classes described bellow
 
-----------------------------------------------------------
+Gene
+====
+
+|name 							| GFF	|
+|start							| GFF							|
+|end			  					| GFF					|
+|exons							| GFF			|
+|introns							| GFF			|
+|cds								| GFF		|
+|start	 						| GFF				|
+|stop	  						| GFF			           	|
+|score	       					| GFF	|
+|frame		  					| GFF		|
+|strand		  					| GFF		|
+|id								| NODE - The unique node id - For gephi		|
+|upstream						| EDGE - The upstream gene object neighbour		|
+|downstream	  					| EDGE - The downstream gene object neighbour	|
+|has	         					| EDGE - The precursor object    	|
+|targeted	   					| EDGE - The miRNAs that target it	|
+|acc	        					| This is the EST accession	|
+
+Target
+======
+
+| miRNA_Acc   					| This is the miRNA sequence	|
+| target_Acc  					| This is the target accession	|
+| expectation					| Score? lower better Must check	|
+| UPE							| Energy	|
+| miRNA_start					|	|
+| miRNA_end						|	|
+| target_start					|	|
+| target_end					|	|
+| miRNA_aligned_fragment		|	|
+| target_aligned_fragment		| 	|
+| inhibition					| Type of inhibition: Cleavage or Inhibition	|
+| target_Desc					|	|
+| multiplicity					| This would be the abundance it seq aren't collapsed	|
+| id 							|   -		|
+| mapping						| This is the mapping	|
+| miRseq						| This is the miRNA sequence. Unifies naming throughout classes 	|
+
+Precursor
+=========
+
+|miRseq		          	 		|	miRNA sequence	|
+|abundance						|	miRNA abundance 	|
+|seqname			            	|	Genome seqname 	|
+|start			   	 			|	Precursor start Coordinates	|
+|end			    	            |	Precursor end Coordinates	|
+|name							|	Precursor unique name 	|
+|region							|	Tuple (seqname,start,end)	|
+|miR								|	NODE - miRNA Name novXXX, miRXXX	|
+|id								|	NODE - Id	|
+|geneNeighbours					|	EDGES - Neighbours Gene object	|
+|gene							|	EDGES - Contained in Gene object	|
+|target							|	EDGES - Targeted gene for regulation	|
+
+
+Mapping
+=======
+
+| QNAME		| String [!-?A-~]{1,254} Query template NAME	|
+| FLAG		| Int [0,216-1] bitwise FLAG	|
+| RNAME		| String \*|[!-()+-<>-~][!-~]* Reference sequence NAME	|
+| POS			| Int [0,231-1] 1-based leftmost mapping POSition	|
+| MAPQ		| Int [0,28-1] MAPping Quality	|
+| CIGAR		| String \*|([0-9]+[MIDNSHPX=])+ CIGAR string	|
+| RNEXT		| String \*|=|[!-()+-<>-~][!-~]* Ref. name of the mate/next read	|
+| PNEXT		| Int [0,231-1] Position of the mate/next read	|
+| TLEN		| Int [-231+1,231-1] observed Template LENgth	|
+| SEQ	e[9]	| String \*|[A-Za-z=.]+ segment SEQuence	|
+| QUAL		| String [!-~]+ ASCII of Phred-scaled base QUALity+33			|
+| region		|  -	|
+| gene		| Gene object used to filter targets based on existence of gene annotation on genome	|
+
+
+
+
+	--------------------------------------------------------
+
+
 
 genGraph.py:    def __init__(self, gffFile):
 genGraph.py-        #Constructor function starts by building genome
