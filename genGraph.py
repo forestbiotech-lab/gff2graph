@@ -217,5 +217,5 @@ class Main:
 Main(gff).generate_g_p_n_target_graph(precursors,samFile,targetFile) #Generate a gene
 
 
-
+#Timing script
 print("--- %s seconds ---" % (time.time() - start_time))
