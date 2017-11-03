@@ -11,6 +11,8 @@ Classes described bellow
 Gene
 ====
 
+|Attribute | Definition |
+|-----|------|
 |name 							| GFF	|
 |start							| GFF							|
 |end			  					| GFF					|
@@ -32,6 +34,8 @@ Gene
 Target
 ======
 
+|Attribute | Definition |
+|-----|------|
 | miRNA_Acc   					| This is the miRNA sequence	|
 | target_Acc  					| This is the target accession	|
 | expectation					| Score? lower better Must check	|
@@ -52,6 +56,8 @@ Target
 Precursor
 =========
 
+|Attribute | Definition |
+|-----|------|
 |miRseq		          	 		|	miRNA sequence	|
 |abundance						|	miRNA abundance 	|
 |seqname			            	|	Genome seqname 	|
@@ -68,7 +74,8 @@ Precursor
 
 Mapping
 =======
-
+|Attribute | Definition |
+|-----|------|
 | QNAME		| String [!-?A-~]{1,254} Query template NAME	|
 | FLAG		| Int [0,216-1] bitwise FLAG	|
 | RNAME		| String \*|[!-()+-<>-~][!-~]* Reference sequence NAME	|
