@@ -21,7 +21,8 @@ class Gene:
 			["downstream", None],         				#EDGE - The downstream gene object neighbour
 			["hasPrecursor",[]],          				#EDGE - The precursor object    
 			["targeted",[]],             			    #EDGE - The miRNAs that target it
-			["acc",None]                 			    #This is the EST accession
+			["acc",None],                 			    #This is the EST accession
+			["product",fl["attribute"]["product"]]		#Extracted from Attribute in featureline  
 			])
 	
 		self.name=self.gene["name"]	

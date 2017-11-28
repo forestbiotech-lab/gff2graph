@@ -7,16 +7,17 @@ from gene import Gene
 
 class Genome:
 	
-	def __init__(self,gffFile):
+	def __init__(selfls,gffFile):
 		#See gff http://www.ensembl.org/info/website/upload/gff.html
 
 		gff=open(gffFile,"r")
-		features=[FeatureLine(gffLine.strip().split("\t")) for gffLine in gff.readlines() if not gffLine.startswith("#") ]
+		##Has probs here se prev example
+		features=[FeatureLine(gffLine) for gffLine in gff.readlines() if not gffLine.startswith("#") ]
 		self.genome=dict()
 		self.node=0
 		for featureLine in features:
 			seqname=featureLine.seqname()
-			if featureLine.feature() == "gene":
+			if featureLine.feature() == "mRNA": 
 				self.node+=1
 				gene=Gene(featureLine,self.node)
 				try:
