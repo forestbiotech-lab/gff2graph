@@ -5,7 +5,7 @@ class Gene:
 	#Starts a gene object
 		fl=FeatureLine.get()
 		#This dictionary of futile change this to variables instead. Or is it better to store this way.
-		self.gene=dict([["name",fl["attribute"]], 		#GFF
+		self.gene=dict([["name",str(fl["attribute"]["ID"])+" | "+str(fl["attribute"]["product"])], 		#GFF
 			["start",int(fl["start"])],   				#GFF						
 			["end",int(fl["end"])],		  				#GFF				
 			["exons",[]],				  				#GFF		

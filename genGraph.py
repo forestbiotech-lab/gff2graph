@@ -201,7 +201,7 @@ class Main:
                 self.isInGene[isInGene]+=1
                 if isInGene:
                     gene=lookup.get_outermost_gene()
-                    print(gene)
+                    print(gene.name)
                     lookup.get_outermost_gene().gene['name']=gene.name+" "+mapping.QNAME
                     mapping.gene=gene
 
