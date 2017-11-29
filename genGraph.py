@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
 
+#
+# Created by Bruno Costa @INESC 2017
+# Description: This is the main file used to generated gephi graph input files from 
+#              Genome annotation mapping and sRNA data.
+#
+# Call: ./gemgraph.py [gff_file] [precursors] [samFile] [targetFile]
+#
+#          Precursors come from miRPursuit
+#          sam file mapping of transcriptome on genome
+#          targetFile from psRNAtarget 
+#
+#
+
+##Imports
 # System modules
 import sys
 import time
-
 
 # Package modules
 from genome import Genome
