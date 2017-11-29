@@ -11,8 +11,8 @@ from graph_tool.all import *
 
 import sys
 import time 
-
 from pylab import *
+
 import random
 
 # Timing script

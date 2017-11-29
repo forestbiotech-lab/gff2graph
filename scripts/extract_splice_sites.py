@@ -19,7 +19,7 @@ for line in gtf:
 	if line.startswith("#"):
 		continue
 	try:
-		fl=FeatureLine(gtf,False)
+		fl=FeatureLine(line,False)
 	except:
 		print(count,file=sys.stderr)
 	if fl.feature()=="CDS":

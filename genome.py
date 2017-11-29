@@ -7,7 +7,7 @@ from gene import Gene
 
 class Genome:
 	
-	def __init__(selfls,gffFile):
+	def __init__(self,gffFile):
 		#See gff http://www.ensembl.org/info/website/upload/gff.html
 
 		gff=open(gffFile,"r")

@@ -201,6 +201,7 @@ class Main:
                 self.isInGene[isInGene]+=1
                 if isInGene:
                     gene=lookup.get_outermost_gene()
+                    print(gene)
                     lookup.get_outermost_gene().gene['name']=gene.name+" "+mapping.QNAME
                     mapping.gene=gene
 
@@ -227,7 +228,7 @@ class Main:
 
 #Main(gff).generate_gene_graph()
 #Main(gff).generate_gene_n_precursor_graph(precursors)
-Main(gff).generate_g_p_n_target_graph(precursors,samFile,targetFile) #Generate a gene
+Main(gff).generate_g_p_n_target_graph(precursors,samFile,targetFile)
 
 
 #Timing script
