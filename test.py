@@ -25,10 +25,10 @@ def filter_freq(freq,filter):
   return res
 
 #Draw the graph of the specified CC
-def showCC(cc):
+def showCC(cc,type=None):
+  pos=None
   #list of vertexes that belong to cc
   #find_vertex(g,clabels[0],cc)
-
   clusterFilter=[]
   for vertice in range(0,len(verticesCC)):  
     if verticesCC[vertice]==int(cc):
@@ -38,11 +38,19 @@ def showCC(cc):
   vpClusterFilter=g.new_vertex_property("bool",clusterFilter)
   g.clear_filters()
   g.set_vertex_filter(vpClusterFilter)
-  #pos=sfdp_layout(g)
-  pos = fruchterman_reingold_layout(g, n_iter=1000)
+  if type=="sfdp":
+    pos=sfdp_layout(g)
+  if type=="arf":
+    pos=arf_layout(g, max_iter=0)
+  if type=="fr":  
+    pos = fruchterman_reingold_layout(g, n_iter=1000)
+  if type=="radial": #Doesn't work because that node isn't there  
+    pos=radial_tree_layout(g, g.vertex(0))
+  if type=="planar":
+    pos=planar_layout(g)
   #graph_draw(g,pos,output_size=(1920,1080), vertex_size=1,edge_pen_width=1.2, vcmap=matplotlib.cm.gist_heat_r,output="graph"+str(cc)+".png")
-  graph_draw(g,pos,output_size=(1920,1080),vertex_fill_color=g.vertex_properties["color"],vertex_size=10,edge_pen_width=1,output="graph-colored_vertices-"+str(cc)+".png")
-w
+  graph_draw(g,pos,output_size=(1920,1080),vertex_fill_color=g.vertex_properties["color"],vertex_size=10,edge_pen_width=1,output="graph-colored_vertices-"+str(type)+"-"+str(cc)+".png")
+
 #Draw graph for components with the biggest number of nodes
 cclist=[2699,1595,2503,2900,2313,2363,3721,2050,2905,2,4136]
 #cclist=[2699]
@@ -58,7 +66,9 @@ for cc in cclist:
 #plt.show()
 
 #Calculate the degree distribution #Filter it for degrees bigger than 3?
-for cc in freq.keys():
-  degree=g.get_out_degrees(find_vertex(g,clabels[0],cc)).tolist()
-  if len(degree)>1:
-    print(str(cc)+": "+str(degree))
+def degreeFiltered(min):
+  for cc in freq.keys():
+    degree=g.get_out_degrees(find_vertex(g,clabels[0],cc)).tolist()
+    dMax=max(degree)
+    if len(degree)>1 and dMax>=min:
+      print(str(cc)+": "+str(dMax)+" "+str(degree))
