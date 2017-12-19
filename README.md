@@ -6,7 +6,20 @@ The main file is genGraph.py
 	To run
 	./genGraph.py [gff] [precursors] [samfile] [targetFile]
 
-Classes described bellow
+
+Classes described below.
+
+Save as graph-tools format (xml). Requires the nodes.tsv and edge.tsv to be in the same folder. (Sorry this is hard-coded for now):
+	
+	./saveGraph.py 
+
+
+The exploreGraph.py file provides the methods to load the xml graph. (Requires graph-tools to be installed on your system.)
+It also provides several functions to process the graph. Generate the degree distribution. Functions to print specific components. List the number of components.
+To do so import exploreGraph into your project and use the function to explore the graphs. 
+Documentation for this file is limited to the comments around the functions.
+
+--------------------------------------------------------------------------------------------------------
 
 Gene
 ====

@@ -62,7 +62,7 @@ for edge in edges[1:]:
   #Add id property
   e=g.add_edge(v_id[edge[0]],v_id[edge[1]])
   #Type code 0-3
-  if edge[3]=="0": #-
+  if edge[3]=="0": #Gene - Gene
     edge_color[e]="#343837" #Charcoal
     edge_type_code[e]=0
   elif edge[3]=="1": #Gene neighbour

@@ -4,15 +4,17 @@ import sys
 from graph_tool.all import *
 from pylab import *
 
-########Filtering edges
+########Filtering edges if true will filter the edges type specified below in filter_edge_type
 filter_edges=True
 filter_edge_type=0
 
+#Loads the graph
 g = load_graph("my_graph.xml.gz")
 
 ##Remove edges that are gene-gene edges
 #total_num of edges
 edge_num=g.num_edges(ignore_filter=True)
+
 #Edge property set to false
 edgeFilter=g.new_edge_property("bool",[1]*edge_num)
 gg_edges=find_edge(g, g.edge_properties["type_code"],filter_edge_type)
@@ -20,16 +22,18 @@ for e in gg_edges:
   #Set to false edege that match the above property
   edgeFilter[e]=0
 if filter_edges:
-  g.set_edge_filter(edgeFilter)
+  g.set_edge_filter(edgeFilter)g
 
 def labelCC(g): 
   #Labelling the components in the graph
   clabels=graph_tool.topology.label_components(g, vprop=None, directed=None, attractors=False)
   return clabels[0].get_array().tolist()
 
-verticesCC=labelCC(g)
+#Is this necessary????
+verticesCC=labelCC(g) 
 
 
+#Describes the size of each Connected component
 ccSize=dict()
 for component in verticesCC:
   try:
@@ -48,7 +52,8 @@ def filter_freq(ccSize,filter):
   return res
 
 
-def cc_vertex_list(verticesCC,cc):  
+def cc_vertex_list(cc): 
+  verticesCC=labelCC(g) 
   #list of vertexes that belong to cc
   clusterFilter=[]
   for vertice in range(0,len(verticesCC)):  
@@ -58,13 +63,14 @@ def cc_vertex_list(verticesCC,cc):
       clusterFilter.append(0)
   return clusterFilter
 
-def cc_vertex_property(verticesCC,cc,g):
+def cc_vertex_property(cc,g):
   #vertex_property with the CC
-  clusterFilter=cc_vertex_list(verticesCC,cc)
+  clusterFilter=cc_vertex_list(cc)
   return g.new_vertex_property("bool",clusterFilter)
 
 
-#Draw the graph of the specified CC
+#Draws specified graphs to graphs/blocks/
+#Draw the graph of the specified CC 
 def drawCC(g,cc,type="sfdp",tt="label",top=False,edgeFilter=None,vertexFilter=None):
   print("Starting to print graph:"+str(cc),file=sys.stderr)
   print("Starting to print graph:"+str(cc))
@@ -74,7 +80,7 @@ def drawCC(g,cc,type="sfdp",tt="label",top=False,edgeFilter=None,vertexFilter=No
   vt=g.vertex_properties["label"]
   #Vertex_fill_color
   v_f_c=g.vertex_properties["color"]
-  clusterFilter=cc_vertex_list(verticesCC,cc)    
+  clusterFilter=cc_vertex_list(cc)    
 
   def labelTop(clusterFilter,values,percentage,labels,g,tt):
   ##Label only nodes that have the top 0.5% values 
@@ -176,16 +182,21 @@ def drawCC(g,cc,type="sfdp",tt="label",top=False,edgeFilter=None,vertexFilter=No
   graph_draw(g,pos,output_size=o_s,vertex_text=vt,vertex_text_position=1,vertex_fill_color=g.vertex_properties["color"],vertex_size=10,edge_color=g.edge_properties["color"],edge_pen_width=1,output="graphs/distance/graph-top_"+str(top)+filtering+"-colored_vertices-TextNodes_"+tt+"-"+str(type)+"-"+str(cc)+".png")
   print("Graph-"+str(cc)+".png - Finished")
 
+#Draws specified graphs to graphs/blocks/
 def drawGraph(g,cc,type="sfdp",tt="label",top=False,vp=None,ep=None,edgeFilter=None,vertexFilter=None):
   print("Starting to print graph:"+str(cc),file=sys.stderr)
   print("Starting to print graph:"+str(cc))
-  
+  #  
   centrality=False
-  vt=g.vertex_properties["label"]
+  if vp is None:
+    vt=g.vertex_properties["label"]
+  else:
+    vt=vp
+  # 
   #Vertex_fill_color
   v_f_c=g.vertex_properties["color"]
-  clusterFilter=cc_vertex_list(verticesCC,cc)    
-
+  clusterFilter=cc_vertex_list(cc)    
+  #  
   def labelTop(clusterFilter,values,percentage,labels,g,tt):
   ##Label only nodes that have the top 0.5% values 
   #clusterFilter: Boolean list identifying the components
@@ -225,7 +236,6 @@ def drawGraph(g,cc,type="sfdp",tt="label",top=False,vp=None,ep=None,edgeFilter=N
   #Remove a type of code
   if vertexFilter is not None:
     g.set_vertex_filter(vertexFilter)
-
   if type=="sfdp":
     pos=sfdp_layout(g)
   if type=="arf":
@@ -247,8 +257,8 @@ def drawGraph(g,cc,type="sfdp",tt="label",top=False,vp=None,ep=None,edgeFilter=N
   if centrality:
     graph_draw(g,pos,output_size=o_s,vorder=vo,vertex_fill_color=v_f_c,edge_color=g.edge_properties["color"],edge_pen_width=1,vertex_size=prop_to_size(sizeRange, mi=5, ma=15),vcmap=matplotlib.cm.gist_heat,output="graphs/blocks/centralities/"+tt+"/graph-top_"+str(top)+filtering+"-heat-centralities_"+tt+"-"+str(type)+"-CC_"+str(cc)+".png")
   else:  
-    graph_draw(g,pos,output_size=o_s,vertex_fill_color=v_f_c,edge_color=g.edge_properties["color"],edge_pen_width=1,vertex_size=10,output="graphs/blocks/graph-top_"+str(top)+filtering+"-colored_vertices-"+str(type)+"-"+str(cc)+".png")  
-  graph_draw(g,pos,output_size=o_s,vertex_text=vt,vertex_text_position=1,vertex_fill_color=g.vertex_properties["color"],vertex_size=10,edge_color=g.edge_properties["color"],edge_pen_width=1,output="graphs/blocks/graph-top_"+str(top)+filtering+"-colored_vertices-TextNodes_"+tt+"-"+str(type)+"-"+str(cc)+".png")
+    graph_draw(g,pos,output_size=o_s,vertex_fill_color=v_f_c,edge_color=g.edge_properties["color"],edge_pen_width=1,vertex_size=40,output="graphs/blocks/graph-top_"+str(top)+filtering+"-colored_vertices-"+str(type)+"-"+str(cc)+".png")  
+  graph_draw(g,pos,output_size=o_s,vertex_text=vt,vertex_text_color="#FFFFFF",vertex_fill_color=g.vertex_properties["color"],vertex_size=40,edge_color=g.edge_properties["color"],edge_pen_width=1,output="graphs/blocks/graph-top_"+str(top)+filtering+"-colored_vertices-TextNodes_"+tt+"-"+str(type)+"-"+str(cc)+".png")
   print("graph-"+str(cc)+".png - Finished")
   g.clear_filters()
 
@@ -272,6 +282,7 @@ def degreeFiltered(min):
       print(str(cc)+": "+str(degMax)+" "+str(degree))
   return res
 
+#Output basic statistics
 def basicStats(centralities):
   print(g)
   print("Number of connected components: "+str(len(ccSize.keys())))
@@ -295,7 +306,7 @@ def basicStats(centralities):
 #basicStats(["label"])#["pagerank","closeness","betweenness"])
 #drawCC(1106,"sfdp","betweenness",top=True)
 
-
+#Plot the degree distibution (Requeires matlibpy to be installed)
 def plotDegreeDist(g,title_str):
   degrees=g.get_out_degrees(g.get_vertices())
   maxDeg=max(degrees)
@@ -313,6 +324,7 @@ def plotDegreeDist(g,title_str):
   xlabel("k")
   savefig(title_str+".svg")
   return degreeDist 
+
 
 def plotclusterDist(g,title_str):
   degrees=g.get_out_degrees(g.get_vertices())
@@ -365,7 +377,7 @@ def vpFilterByValue(g,vp,match):
     res[v]=1    
   return res
 
-
+###Partitioning into blocks using Monte carlo markov chains (Uncomment the line below)
 #g.set_vertex_filter(cc_vertex_property(verticesCC,0,g))
 #state = minimize_blockmodel_dl(g)
 #b = state.get_blocks()
@@ -375,7 +387,7 @@ def printNodesPerBlock(b,g,verticesCC):
       print("Block:"+str(b[g.vertex(v)])+"\tVertex:"+str(v)+"\tLabel:"+str(g.vertex_properties['label'][g.vertex(v)]))
 
 
-
+#Calculate the average path length using a specified vertix property and or edge property
 def averagePathLength(g,vp=None,ep=None):
   g.clear_filters()
   if vp is not None:
@@ -390,6 +402,30 @@ def averagePathLength(g,vp=None,ep=None):
         sum+=sd 
   print(sum)
 
+
+def labelTopDegrees(g):
+  count=0
+  degrees=g.get_out_degrees(g.get_vertices())
+  for deg in degrees:
+    if deg > 30:
+      print(str(deg)+"-> Idx"+str(count)+" : "+g.vertex_properties['label'][g.vertex(count)])
+    count+=1
+
+#Shows the k core levels up to 3 for the hardcoded vertex 90548 (can be changed to a variable)
+def showSubGraph():
+  #used to show biggest hub.
+  g.clear_filters()
+  vertexFilter=g.new_vertex_property("bool",[0]*g.num_vertices())
+  kCoreVp=g.new_vertex_property("string",["0"]*g.num_vertices())
+  source=g.vertex(90548)
+  for v in bfs_iterator(g,source):
+    if shortest_distance(g,source,v.source())<3: 
+      kCoreVp[v.source()]=str(shortest_distance(g,source,v.source()))
+      vertexFilter[v.source()]=1
+    else:
+      break
+
+  drawGraph(g,90548,type="sfdp",tt="label",top=False,vp=kCoreVp,ep=None,edgeFilter=None,vertexFilter=vertexFilter)
 #for block in range(1,16):
 #  g.clear_filters()
 #  vertexFilter=vpFilterByValue(g,b,block)
